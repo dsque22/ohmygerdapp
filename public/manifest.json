@@ -1,0 +1,54 @@
+{
+  "name": "OhMyGerd - GERD Tracking App",
+  "short_name": "OhMyGerd",
+  "description": "Track your GERD symptoms and manage your health journey with Liao Reflux Relief",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f4f0",
+  "theme_color": "#14301f",
+  "orientation": "portrait-primary",
+  "categories": ["health", "medical", "wellness"],
+  "lang": "en-US",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Track Today",
+      "short_name": "Track",
+      "description": "Quick access to daily symptom tracking",
+      "url": "/tracking",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your health progress",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}
