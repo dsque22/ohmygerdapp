@@ -36,9 +36,12 @@ function HomePage() {
         
         <div className="relative max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-6xl font-bold text-primary-800 mb-4">
-              OhMyGerd
-            </h1>
+            <div className="flex items-center justify-center mb-6">
+              <img src="/liao-logo.png" alt="Liao Herbal" className="h-12 mr-4" />
+              <h1 className="text-6xl font-bold text-primary-800">
+                OhMyGerd
+              </h1>
+            </div>
             <p className="text-xl text-text-secondary mb-8 max-w-2xl mx-auto">
               The only 2-minute daily GERD tracker that connects your symptoms to real relief - 
               designed specifically for natural healing solutions.

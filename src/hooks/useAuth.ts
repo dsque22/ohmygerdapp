@@ -5,37 +5,29 @@ export function useAuth() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [session, setSession] = useState<any>(null)
-  const [loading, setLoading] = useState(false) // Start with false for demo
+  const [loading, setLoading] = useState(true) // Start with true, then set to false after init
 
-  // Mock user data
+  // Initialize without user for proper login flow
   useEffect(() => {
-    // Simulate a demo user for testing
-    const demoUser = {
-      id: 'demo-user-123',
-      email: 'demo@example.com',
+    // Check for existing session in localStorage (for persistence)
+    const savedSession = localStorage.getItem('demo-session')
+    if (savedSession) {
+      try {
+        const sessionData = JSON.parse(savedSession)
+        // Update the profile to ensure admin access
+        const updatedProfile = {
+          ...sessionData.profile,
+          is_admin: true // Force admin access for demo
+        }
+        setUser(sessionData.user)
+        setProfile(updatedProfile)
+        setSession(sessionData.session)
+      } catch (error) {
+        // If there's an error parsing, clear the session
+        localStorage.removeItem('demo-session')
+      }
     }
-    
-    const demoProfile = {
-      id: 'demo-user-123',
-      email: 'demo@example.com',
-      first_name: 'John',
-      last_name: 'Doe',
-      age: 35,
-      gender: 'male',
-      gerd_duration: '1_to_5_years',
-      worst_symptoms: ['heartburn', 'regurgitation'],
-      liao_customer_status: 'current_customer',
-      known_triggers: ['spicy_foods', 'coffee'],
-      is_admin: false,
-    }
-
-    // Simulate loading state briefly
-    setTimeout(() => {
-      setUser(demoUser)
-      setProfile(demoProfile)
-      setSession({ user: demoUser })
-      setLoading(false)
-    }, 100)
+    setLoading(false)
   }, [])
 
   const signUp = async (email: string, password: string, userData: any) => {
@@ -47,13 +39,50 @@ export function useAuth() {
   const signIn = async (email: string, password: string) => {
     // Mock signin
     await new Promise(resolve => setTimeout(resolve, 1000))
-    return { data: { user: { id: 'demo-user', email } }, error: null }
+    
+    // Simulate successful login by setting user state
+    const demoUser = {
+      id: 'demo-user-123',
+      email: email,
+    }
+    
+    const demoProfile = {
+      id: 'demo-user-123',
+      email: email,
+      first_name: 'John',
+      last_name: 'Doe',
+      age: 35,
+      gender: 'male',
+      gerd_duration: '1_to_5_years',
+      worst_symptoms: ['heartburn', 'regurgitation'],
+      liao_customer_status: 'current_customer',
+      known_triggers: ['spicy_foods', 'coffee'],
+      is_admin: true,
+    }
+    
+    setUser(demoUser)
+    setProfile(demoProfile)
+    setSession({ user: demoUser })
+    
+    // Save session to localStorage for persistence (with admin access)
+    const profileWithAdmin = { ...demoProfile, is_admin: true }
+    localStorage.setItem('demo-session', JSON.stringify({
+      user: demoUser,
+      profile: profileWithAdmin,
+      session: { user: demoUser }
+    }))
+    
+    // Update the profile state with admin access
+    setProfile(profileWithAdmin)
+    
+    return { data: { user: demoUser }, error: null }
   }
 
   const signOut = async () => {
     setUser(null)
     setProfile(null)
     setSession(null)
+    localStorage.removeItem('demo-session')
     return { error: null }
   }
 

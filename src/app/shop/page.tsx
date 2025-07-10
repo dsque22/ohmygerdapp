@@ -117,7 +117,7 @@ function ShopPage() {
             <Card className="overflow-hidden">
               <div className="aspect-square bg-gradient-to-br from-primary-50 to-background flex items-center justify-center">
                 <div className="text-center p-8">
-                  <Leaf className="w-20 h-20 text-primary-700 mx-auto mb-4" />
+                  <img src="/liao-logo.png" alt="Liao Herbal" className="h-16 mx-auto mb-4" />
                   <h3 className="text-2xl font-bold text-primary-800 mb-2">
                     {PRODUCT_INFO.name}
                   </h3>

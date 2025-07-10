@@ -94,6 +94,47 @@ A comprehensive Progressive Web App (PWA) for tracking GERD symptoms and managin
 3. **Shop Integration**: Purchase Liao products
 4. **Settings**: Manage preferences and data
 
+## 🗺️ Application Pages & Navigation
+
+### Public Pages (No Authentication Required)
+- **`/`** - Landing page with value proposition, feature highlights, and call-to-action buttons
+  - Links to: `/signup`, `/login`
+- **`/login`** - User authentication page
+  - Links to: `/forgot-password` (placeholder), `/signup`, redirects to `/dashboard` on success
+- **`/signup`** - User registration page
+  - Links to: `/login`, redirects to `/survey` on success
+
+### Protected Pages (Authentication Required)
+- **`/dashboard`** - Main user dashboard with progress overview and quick actions
+  - Links to: `/shop`, `/tracking`, `/settings` (via navigation)
+- **`/survey`** - 6-step onboarding health assessment (new users only)
+  - Redirects to: `/dashboard` on completion
+- **`/tracking`** - Daily symptom tracking form (2-minute flow)
+  - Links to: `/dashboard` (back button and completion redirect)
+- **`/shop`** - Liao Reflux Relief product page with exclusive app user discount
+  - Links to: `/dashboard` (back button), external link to `liaoherbal.com` with UTM tracking
+- **`/settings`** - User preferences, profile management, and data controls
+  - Links to: `/dashboard` (back button), `mailto:support@liaoherbal.com`, redirects to `/` on sign out
+
+### Admin Pages (Admin Role Required)
+- **`/admin`** - Analytics dashboard for user metrics and business intelligence
+  - Redirects to: `/dashboard` if not admin
+
+### Key Navigation Patterns
+- **Authentication Flow**: `/` → `/signup` → `/survey` → `/dashboard`
+- **Daily Usage**: `/dashboard` → `/tracking` → `/dashboard`
+- **Purchase Flow**: `/dashboard` → `/shop` → External Liao website
+- **Settings Access**: Any page → `/settings` → Return to previous page
+
+### External Links
+- **Liao Herbal Store**: `https://liaoherbal.com/products/reflux-relief` (with UTM parameters)
+- **Support Email**: `support@liaoherbal.com`
+
+### Protected Route Behavior
+- Unauthenticated users are redirected to `/login`
+- Admin-only pages redirect non-admin users to `/dashboard`
+- Successfully authenticated users at `/` or `/login` are redirected to `/dashboard`
+
 ## 🗄 Database Schema
 
 ### Core Tables

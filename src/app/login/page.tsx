@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
@@ -17,8 +17,19 @@ function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { signIn } = useAuth()
+  const { signIn, isAuthenticated, loading: authLoading } = useAuth()
   const router = useRouter()
+
+  // Only show loading during auth check
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse-gentle">
+          <div className="text-2xl font-bold text-primary-800">Loading...</div>
+        </div>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,17 +37,21 @@ function LoginPage() {
     setLoading(true)
 
     try {
-      const { error } = await signIn(email, password)
+      const result = await signIn(email, password)
+      console.log('SignIn result:', result)
       
-      if (error) {
-        setError(typeof error === 'string' ? error : error?.message || 'Login failed')
+      if (result.error) {
+        setError(typeof result.error === 'string' ? result.error : result.error?.message || 'Login failed')
+        setLoading(false)
         return
       }
 
+      // Successfully signed in, don't set loading to false - let redirect happen
+      console.log('Login successful, redirecting to dashboard')
       router.push('/dashboard')
     } catch (err) {
+      console.error('Login error:', err)
       setError('An unexpected error occurred')
-    } finally {
       setLoading(false)
     }
   }
@@ -45,9 +60,12 @@ function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-primary-800 mb-2">
-            OhMyGerd
-          </h1>
+          <div className="flex items-center justify-center mb-4">
+            <img src="/liao-symbol.png" alt="Liao Herbal" className="h-8 mr-3" />
+            <h1 className="text-4xl font-bold text-primary-800">
+              OhMyGerd
+            </h1>
+          </div>
           <p className="text-text-secondary">
             Welcome back to your GERD tracking journey
           </p>

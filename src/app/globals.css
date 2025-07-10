@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Apercu';
+  src: url('/fonts/apercu.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Publico Banner';
+  src: url('/fonts/publico-banner.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   * {
     border-color: rgb(229 231 235);
@@ -8,10 +24,11 @@
   body {
     background-color: #f6f4f0;
     color: #1a1a1a;
+    font-family: 'Apercu', 'Inter', system-ui, sans-serif;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: Georgia, serif;
+    font-family: 'Publico Banner', 'Georgia', serif;
   }
 }
 

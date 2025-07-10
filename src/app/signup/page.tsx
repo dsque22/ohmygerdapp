@@ -79,9 +79,12 @@ function SignupPage() {
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-primary-800 mb-2">
-            OhMyGerd
-          </h1>
+          <div className="flex items-center justify-center mb-4">
+            <img src="/liao-symbol.png" alt="Liao Herbal" className="h-8 mr-3" />
+            <h1 className="text-4xl font-bold text-primary-800">
+              OhMyGerd
+            </h1>
+          </div>
           <p className="text-text-secondary">
             Start your GERD tracking journey today
           </p>

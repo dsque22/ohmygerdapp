@@ -87,8 +87,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['var(--font-apercu)', 'system-ui', 'sans-serif'],
-        serif: ['var(--font-publico)', 'Georgia', 'serif'],
+        sans: ['Apercu', 'Inter', 'system-ui', 'sans-serif'],
+        serif: ['Publico Banner', 'Georgia', 'serif'],
       },
       fontSize: {
         'xs': ['0.75rem', { lineHeight: '1rem' }],
