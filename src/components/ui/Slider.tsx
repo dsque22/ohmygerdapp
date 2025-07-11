@@ -34,11 +34,12 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
 
     const percentage = ((value - min) / (max - min)) * 100
 
-    const colorClasses = {
-      primary: 'accent-primary-700',
-      accent: 'accent-accent',
-      red: 'accent-red-500',
-      green: 'accent-green-500',
+    const getThumbBorderColor = (color: string) => {
+      if (color === 'accent') return '#df6552'
+      if (color === 'primary') return '#14301f'
+      if (color === 'red') return '#ef4444'
+      if (color === 'green') return '#10b981'
+      return '#14301f'
     }
 
     return (
@@ -66,30 +67,19 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
             onChange={handleChange}
             className={cn(
               'w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer',
-              'slider-thumb:appearance-none slider-thumb:h-5 slider-thumb:w-5',
-              'slider-thumb:rounded-full slider-thumb:bg-white slider-thumb:shadow-medium',
-              'slider-thumb:border-2 slider-thumb:border-primary-700',
-              'slider-thumb:cursor-pointer slider-thumb:transition-all slider-thumb:duration-200',
-              'hover:slider-thumb:scale-110 focus:outline-none focus:ring-2 focus:ring-primary-500',
-              colorClasses[color],
+              'focus:outline-none focus:ring-2',
+              color === 'accent' ? 'focus:ring-[#df6552]' : 'focus:ring-primary-500',
               className
             )}
+            style={{
+              accentColor: getThumbBorderColor(color)
+            }}
             {...props}
-          />
-          <div
-            className={cn(
-              'absolute top-0 left-0 h-2 rounded-lg transition-all duration-200',
-              color === 'primary' && 'bg-primary-700',
-              color === 'accent' && 'bg-accent',
-              color === 'red' && 'bg-red-500',
-              color === 'green' && 'bg-green-500'
-            )}
-            style={{ width: `${percentage}%` }}
           />
         </div>
         <div className="flex justify-between text-xs text-text-muted mt-1">
-          <span>{min}</span>
-          <span>{max}</span>
+          <span>{min} (low)</span>
+          <span>{max} (high)</span>
         </div>
       </div>
     )

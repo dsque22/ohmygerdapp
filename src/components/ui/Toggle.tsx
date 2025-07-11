@@ -1,16 +1,17 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 
-interface ToggleProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface ToggleProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange' | 'size'> {
   label?: string
   description?: string
   checked?: boolean
   onChange?: (checked: boolean) => void
   size?: 'sm' | 'md' | 'lg'
+  color?: 'primary' | 'accent'
 }
 
 const Toggle = React.forwardRef<HTMLInputElement, ToggleProps>(
-  ({ className, label, description, checked = false, onChange, size = 'md', ...props }, ref) => {
+  ({ className, label, description, checked = false, onChange, size = 'md', color = 'primary', ...props }, ref) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange?.(e.target.checked)
     }
@@ -34,6 +35,15 @@ const Toggle = React.forwardRef<HTMLInputElement, ToggleProps>(
     }
 
     const currentSize = sizeClasses[size]
+    
+    const getBackgroundColor = () => {
+      if (!checked) return 'bg-gray-200'
+      return color === 'accent' ? 'bg-[#df6552]' : 'bg-primary-700'
+    }
+    
+    const getFocusRingColor = () => {
+      return color === 'accent' ? 'focus:ring-[#df6552]' : 'focus:ring-primary-500'
+    }
 
     return (
       <div className="flex items-start space-x-3">
@@ -49,8 +59,9 @@ const Toggle = React.forwardRef<HTMLInputElement, ToggleProps>(
           <div
             className={cn(
               'relative inline-flex cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              checked ? 'bg-primary-700' : 'bg-gray-200',
+              'focus:outline-none focus:ring-2 focus:ring-offset-2',
+              getBackgroundColor(),
+              getFocusRingColor(),
               currentSize.toggle,
               className
             )}
@@ -85,7 +96,7 @@ const Toggle = React.forwardRef<HTMLInputElement, ToggleProps>(
                   checked ? 'opacity-100' : 'opacity-0'
                 )}
               >
-                <svg className="w-3 h-3 text-primary-700" fill="currentColor" viewBox="0 0 12 12">
+                <svg className={cn("w-3 h-3", color === 'accent' ? 'text-[#df6552]' : 'text-primary-700')} fill="currentColor" viewBox="0 0 12 12">
                   <path d="M10 4L5 9L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                 </svg>
               </span>
