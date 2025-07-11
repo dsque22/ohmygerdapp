@@ -44,15 +44,14 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             {...props}
           />
           {checked && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ paddingTop: '1px' }}>
               <svg
                 className={cn(
-                  'text-white',
                   size === 'sm' && 'w-3 h-3',
                   size === 'md' && 'w-4 h-4',
                   size === 'lg' && 'w-5 h-5'
                 )}
-                fill="currentColor"
+                fill="#df6552"
                 viewBox="0 0 20 20"
               >
                 <path

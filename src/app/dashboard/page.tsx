@@ -20,7 +20,8 @@ import {
   CheckCircle,
   Clock,
   BarChart3,
-  ShoppingBag
+  ShoppingBag,
+  Settings
 } from 'lucide-react'
 import { formatDate, TRIGGER_FOOD_LABELS } from '@/lib/utils'
 
@@ -29,9 +30,9 @@ function DashboardPage() {
   const { 
     entries, 
     loading, 
-    hasTrackedToday, 
-    getWeeklyEntries, 
-    getAverageScores, 
+    hasTrackedToday,
+    getWeeklyEntries,
+    getAverageScores,
     getStreak, 
     getTreatmentConsistency,
     getMostCommonTriggers 
@@ -54,20 +55,20 @@ function DashboardPage() {
     )
   }
 
-  const weeklyEntries = getWeeklyEntries()
-  const averageScores = getAverageScores('week')
-  const streak = getStreak()
-  const treatmentConsistency = getTreatmentConsistency('week')
-  const commonTriggers = getMostCommonTriggers('week')
+  const weeklyEntries = getWeeklyEntries() || []
+  const averageScores = getAverageScores('week') || { discomfort: 0, heartburn: 0, sleep: 0 }
+  const streak = getStreak() || 0
+  const treatmentConsistency = getTreatmentConsistency('week') || { overall: 0, morning: 0, evening: 0 }
+  const commonTriggers = getMostCommonTriggers('week') || []
 
-  const chartData = weeklyEntries.map(entry => ({
+  const chartData = (weeklyEntries || []).map(entry => ({
     date: entry.entry_date,
     discomfort: entry.discomfort_level,
     heartburn: entry.heartburn_intensity,
     sleep: entry.sleep_disruption,
   })).reverse()
 
-  const triggerChartData = commonTriggers.map(({ trigger, count }) => ({
+  const triggerChartData = (commonTriggers || []).map(({ trigger, count }) => ({
     name: TRIGGER_FOOD_LABELS[trigger] || trigger,
     value: count,
   }))
@@ -87,6 +88,10 @@ function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex justify-center mb-8">
+          <img src="/liao-logo.png" alt="Liao Herbal" className="h-8" />
+        </div>
+        
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-primary-800 mb-2">
@@ -97,6 +102,12 @@ function DashboardPage() {
             </p>
           </div>
           <div className="flex gap-3 mt-4 sm:mt-0">
+            <Link href="/settings">
+              <Button variant="outline">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+            </Link>
             <Link href="/shop">
               <Button variant="outline">
                 <ShoppingBag className="w-4 h-4 mr-2" />
@@ -104,9 +115,12 @@ function DashboardPage() {
               </Button>
             </Link>
             <Link href="/tracking">
-              <Button>
+              <Button
+                className="font-sans text-white"
+                style={{ backgroundColor: '#df6552' }}
+              >
                 <Plus className="w-4 h-4 mr-2" />
-                {hasTrackedToday ? 'Update Today' : 'Track Today'}
+                Track Today
               </Button>
             </Link>
           </div>
@@ -174,21 +188,19 @@ function DashboardPage() {
 
         {!hasTrackedToday && (
           <Card className="mb-8 border-accent bg-accent-50">
-            <CardContent className="flex items-center justify-between p-6">
-              <div className="flex items-center">
-                <Clock className="w-5 h-5 text-accent mr-3" />
-                <div>
-                  <h3 className="font-semibold text-text-primary">
-                    Ready for your daily check-in?
-                  </h3>
-                  <p className="text-text-secondary text-sm">
-                    Track today's symptoms in just 2 minutes
-                  </p>
-                </div>
-              </div>
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-accent">
+                Haven't tracked today yet?
+              </CardTitle>
+              <CardDescription>
+                Keep your streak going! Track your symptoms to see your progress over time.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <Link href="/tracking">
-                <Button>
-                  Start Tracking
+                <Button className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Track Today's Symptoms
                 </Button>
               </Link>
             </CardContent>
@@ -198,8 +210,8 @@ function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <Card className="animate-slide-up">
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-primary-700" />
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary-600" />
                 Weekly Symptom Trends
               </CardTitle>
               <CardDescription>
@@ -207,21 +219,21 @@ function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {chartData.length > 0 ? (
-                <LineChart
+              {chartData && chartData.length > 0 ? (
+                <LineChart 
                   data={chartData}
                   lines={[
-                    { dataKey: 'discomfort', name: 'Discomfort', color: '#14301f' },
-                    { dataKey: 'heartburn', name: 'Heartburn', color: '#df6552' },
-                    { dataKey: 'sleep', name: 'Sleep', color: '#ea8952' },
+                    { dataKey: 'discomfort', name: 'Discomfort', color: '#df6552' },
+                    { dataKey: 'heartburn', name: 'Heartburn', color: '#f59e0b' },
+                    { dataKey: 'sleep', name: 'Sleep Disruption', color: '#8b5cf6' }
                   ]}
-                  height={300}
                 />
               ) : (
-                <div className="h-72 flex items-center justify-center text-text-muted">
+                <div className="h-64 flex items-center justify-center text-text-muted">
                   <div className="text-center">
-                    <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Start tracking to see your trends</p>
+                    <BarChart3 className="h-12 w-12 mx-auto mb-4 text-text-muted" />
+                    <p>No data available yet</p>
+                    <p className="text-sm">Start tracking to see your trends</p>
                   </div>
                 </div>
               )}
@@ -230,26 +242,26 @@ function DashboardPage() {
 
           <Card className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Moon className="w-5 h-5 mr-2 text-peach-600" />
-                Common Trigger Foods
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-clay-600" />
+                Common Triggers
               </CardTitle>
               <CardDescription>
-                Your most frequently consumed trigger foods this week
+                Foods that most often triggered your symptoms this week
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {triggerChartData.length > 0 ? (
-                <BarChart
-                  data={triggerChartData}
+              {triggerChartData && triggerChartData.length > 0 ? (
+                <BarChart 
+                  data={triggerChartData} 
                   color="#df6552"
-                  height={300}
                 />
               ) : (
-                <div className="h-72 flex items-center justify-center text-text-muted">
+                <div className="h-64 flex items-center justify-center text-text-muted">
                   <div className="text-center">
-                    <Heart className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No trigger foods recorded this week</p>
+                    <Heart className="h-12 w-12 mx-auto mb-4 text-text-muted" />
+                    <p>No trigger data yet</p>
+                    <p className="text-sm">Track your meals to identify patterns</p>
                   </div>
                 </div>
               )}
@@ -257,45 +269,111 @@ function DashboardPage() {
           </Card>
         </div>
 
-        <Card className="animate-slide-up">
-          <CardHeader>
-            <CardTitle>Treatment Consistency</CardTitle>
-            <CardDescription>
-              Your Liao Reflux Relief usage this week
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary-800 mb-2">
-                  {treatmentConsistency.morning}%
-                </div>
-                <p className="text-sm text-text-secondary">Morning doses</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="animate-slide-up">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary-600" />
+                This Week's Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-text-secondary">Entries logged</span>
+                <span className="font-semibold">{weeklyEntries.length}/7</span>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-primary-800 mb-2">
-                  {treatmentConsistency.evening}%
-                </div>
-                <p className="text-sm text-text-secondary">Evening doses</p>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-text-secondary">Average sleep quality</span>
+                <span className={`font-semibold ${getScoreColor(10 - averageScores.sleep)}`}>
+                  {(10 - averageScores.sleep).toFixed(1)}/10
+                </span>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">
-                  {treatmentConsistency.overall}%
-                </div>
-                <p className="text-sm text-text-secondary">Overall consistency</p>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-text-secondary">Best day</span>
+                <span className="font-semibold">
+                  {weeklyEntries && weeklyEntries.length > 0 
+                    ? formatDate(weeklyEntries.sort((a, b) => 
+                        (a.discomfort_level + a.heartburn_intensity) - 
+                        (b.discomfort_level + b.heartburn_intensity)
+                      )[0]?.entry_date || '')
+                    : 'No data'
+                  }
+                </span>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <div className="mt-8 text-center">
-          <p className="text-text-muted text-sm">
-            Need support? Visit our{' '}
-            <Link href="/shop" className="text-accent hover:text-accent-dark underline">
-              shop
-            </Link>{' '}
-            for Liao Reflux Relief products
-          </p>
+          <Card className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Moon className="h-5 w-5 text-primary-600" />
+                Sleep Quality
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center">
+                <div className={`text-3xl font-bold ${getScoreColor(10 - averageScores.sleep)}`}>
+                  {(10 - averageScores.sleep).toFixed(1)}
+                </div>
+                <p className="text-sm text-text-muted">
+                  Average sleep quality this week
+                </p>
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Excellent (9-10)</span>
+                    <span>{(weeklyEntries || []).filter(e => e.sleep_disruption <= 1).length} days</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Good (7-8)</span>
+                    <span>{(weeklyEntries || []).filter(e => e.sleep_disruption > 1 && e.sleep_disruption <= 3).length} days</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Poor (1-6)</span>
+                    <span>{(weeklyEntries || []).filter(e => e.sleep_disruption > 3).length} days</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                Treatment Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-text-secondary">Morning doses</span>
+                  <span className="font-semibold text-green-600">
+                    {treatmentConsistency.morning}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-text-secondary">Evening doses</span>
+                  <span className="font-semibold text-green-600">
+                    {treatmentConsistency.evening}%
+                  </span>
+                </div>
+                <div className="pt-3 border-t">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Overall consistency</span>
+                    <span className="font-bold text-green-600">
+                      {treatmentConsistency.overall}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-text-muted mt-2">
+                    {treatmentConsistency.overall >= 80 
+                      ? "Excellent consistency! Keep it up." 
+                      : "Try to maintain regular dosing for best results."
+                    }
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

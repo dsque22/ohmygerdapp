@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
@@ -16,6 +17,7 @@ function SignupPage() {
     password: '',
     confirmPassword: '',
   })
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -70,7 +72,7 @@ function SignupPage() {
     }
   }
 
-  const isFormValid = formData.email && formData.password && formData.confirmPassword
+  const isFormValid = formData.email && formData.password && formData.confirmPassword && acceptedPolicies
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
@@ -158,6 +160,35 @@ function SignupPage() {
                   {error}
                 </div>
               )}
+              
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="accept-policies"
+                  checked={acceptedPolicies}
+                  onCheckedChange={(checked) => setAcceptedPolicies(!!checked)}
+                  className="mt-1"
+                />
+                <label htmlFor="accept-policies" className="text-sm text-text-secondary leading-relaxed">
+                  I accept the{' '}
+                  <Link
+                    href="/privacy-policy"
+                    className="text-accent hover:text-accent-dark transition-colors underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Privacy Policy
+                  </Link>{' '}
+                  and{' '}
+                  <Link
+                    href="/data-policy"
+                    className="text-accent hover:text-accent-dark transition-colors underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Data Policy
+                  </Link>
+                </label>
+              </div>
               
               <Button
                 type="submit"

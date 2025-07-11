@@ -12,6 +12,8 @@ import { ChevronLeft, ChevronRight, User, Clock, Heart, Package } from 'lucide-r
 import { SYMPTOMS, TRIGGER_FOODS, SYMPTOM_LABELS, TRIGGER_FOOD_LABELS } from '@/lib/utils'
 
 interface SurveyData {
+  firstName: string
+  lastName: string
   age: number
   gender: string
   gerdDuration: string
@@ -32,6 +34,8 @@ const STEPS = [
 function SurveyPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [surveyData, setSurveyData] = useState<SurveyData>({
+    firstName: '',
+    lastName: '',
     age: 0,
     gender: '',
     gerdDuration: '',
@@ -76,6 +80,8 @@ function SurveyPage() {
 
     try {
       const { error } = await updateProfile({
+        first_name: surveyData.firstName,
+        last_name: surveyData.lastName,
         age: surveyData.age,
         gender: surveyData.gender,
         gerd_duration: surveyData.gerdDuration,
@@ -89,7 +95,7 @@ function SurveyPage() {
         return
       }
 
-      router.push('/dashboard')
+      router.push('/tracking')
     } catch (err) {
       setError('An unexpected error occurred')
     } finally {
@@ -100,7 +106,7 @@ function SurveyPage() {
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
-        return surveyData.age > 0 && surveyData.gender
+        return surveyData.firstName && surveyData.lastName && surveyData.age > 0 && surveyData.gender
       case 2:
         return surveyData.gerdDuration
       case 3:
@@ -119,6 +125,25 @@ function SurveyPage() {
       case 1:
         return (
           <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                type="text"
+                label="First Name"
+                value={surveyData.firstName}
+                onChange={(e) => updateSurveyData('firstName', e.target.value)}
+                placeholder="Enter your first name"
+                required
+              />
+              <Input
+                type="text"
+                label="Last Name"
+                value={surveyData.lastName}
+                onChange={(e) => updateSurveyData('lastName', e.target.value)}
+                placeholder="Enter your last name"
+                required
+              />
+            </div>
+            
             <Input
               type="number"
               label="Age"
@@ -147,7 +172,10 @@ function SurveyPage() {
                       value={option.value}
                       checked={surveyData.gender === option.value}
                       onChange={(e) => updateSurveyData('gender', e.target.value)}
-                      className="w-4 h-4 text-primary-700 focus:ring-primary-500"
+                      className="w-4 h-4 focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                      style={{
+                        accentColor: '#df6552'
+                      }}
                     />
                     <label htmlFor={option.value} className="text-sm text-text-primary">
                       {option.label}
@@ -180,7 +208,10 @@ function SurveyPage() {
                     value={option.value}
                     checked={surveyData.gerdDuration === option.value}
                     onChange={(e) => updateSurveyData('gerdDuration', e.target.value)}
-                    className="w-4 h-4 text-primary-700 focus:ring-primary-500"
+                    className="w-4 h-4 focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                    style={{
+                      accentColor: '#df6552'
+                    }}
                   />
                   <label htmlFor={option.value} className="text-sm text-text-primary">
                     {option.label}
@@ -214,14 +245,12 @@ function SurveyPage() {
         return (
           <div className="space-y-3">
             <label className="block text-sm font-medium text-text-primary">
-              What is your current status with Liao Reflux Relief?
+              Are you a Liao customer?
             </label>
             <div className="space-y-2">
               {[
-                { value: 'current_customer', label: 'Current customer - I use Liao regularly' },
-                { value: 'past_customer', label: 'Past customer - I\'ve tried Liao before' },
-                { value: 'interested', label: 'Interested - I\'d like to learn more' },
-                { value: 'not_interested', label: 'Not interested at this time' },
+                { value: 'yes', label: 'Yes' },
+                { value: 'no', label: 'No' },
               ].map(option => (
                 <div key={option.value} className="flex items-center space-x-2">
                   <input
@@ -231,7 +260,10 @@ function SurveyPage() {
                     value={option.value}
                     checked={surveyData.liaoCustomerStatus === option.value}
                     onChange={(e) => updateSurveyData('liaoCustomerStatus', e.target.value)}
-                    className="w-4 h-4 text-primary-700 focus:ring-primary-500"
+                    className="w-4 h-4 focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                    style={{
+                      accentColor: '#df6552'
+                    }}
                   />
                   <label htmlFor={option.value} className="text-sm text-text-primary">
                     {option.label}
@@ -316,11 +348,12 @@ function SurveyPage() {
                   <div
                     className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
                       isActive
-                        ? 'bg-primary-700 border-primary-700 text-white'
+                        ? 'border-primary-700 text-white'
                         : isCompleted
                         ? 'bg-green-100 border-green-500 text-green-600'
                         : 'bg-background border-gray-300 text-text-muted'
                     }`}
+                    style={isActive ? { backgroundColor: '#df6552' } : {}}
                   >
                     <Icon className="w-5 h-5" />
                   </div>
@@ -344,7 +377,7 @@ function SurveyPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{STEPS[currentStep - 1]?.title}</CardTitle>
+            <CardTitle className="text-center font-sans">{STEPS[currentStep - 1]?.title}</CardTitle>
             <CardDescription>
               {currentStep === 6
                 ? 'Your survey is complete!'
