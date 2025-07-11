@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { LineChart } from '@/components/charts/LineChart'
 import { BarChart } from '@/components/charts/BarChart'
+import { BottomNavigation } from '@/components/ui/BottomNavigation'
 import { 
   Plus, 
   TrendingUp, 
@@ -21,7 +22,8 @@ import {
   Clock,
   BarChart3,
   ShoppingBag,
-  Settings
+  Settings,
+  Flame
 } from 'lucide-react'
 import { formatDate, TRIGGER_FOOD_LABELS } from '@/lib/utils'
 
@@ -87,13 +89,13 @@ function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 pb-20 sm:pb-8 sm:px-6 lg:px-8">
         <div className="flex justify-center mb-8">
           <img src="/liao-logo.png" alt="Liao Herbal" className="h-8" />
         </div>
         
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-          <div>
+        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-center mb-8">
+          <div className="text-center sm:text-left">
             <h1 className="text-3xl font-bold text-primary-800 mb-2">
               Welcome back, {profile?.first_name}!
             </h1>
@@ -101,7 +103,22 @@ function DashboardPage() {
               Here's your GERD tracking overview
             </p>
           </div>
-          <div className="flex gap-3 mt-4 sm:mt-0">
+          
+          {/* Mobile Track Today button */}
+          <div className="sm:hidden mt-4">
+            <Link href="/tracking">
+              <Button
+                className="font-sans text-white px-6 py-3 rounded-xl shadow-lg"
+                style={{ backgroundColor: '#df6552' }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Track Today
+              </Button>
+            </Link>
+          </div>
+
+          {/* Desktop buttons */}
+          <div className="hidden sm:flex gap-3 mt-4 sm:mt-0">
             <Link href="/settings">
               <Button variant="outline">
                 <Settings className="w-4 h-4 mr-2" />
@@ -126,14 +143,14 @@ function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
           <Card className="animate-slide-up">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Streak</CardTitle>
-              <Calendar className="h-4 w-4 text-primary-600" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-sm sm:text-base font-bold font-sans">Current Streak</CardTitle>
+              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-primary-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary-800">{streak}</div>
+            <CardContent className="pt-1">
+              <div className="text-xl sm:text-2xl font-bold text-primary-800">{streak}</div>
               <p className="text-xs text-text-muted">
                 {streak === 1 ? 'day' : 'days'} of tracking
               </p>
@@ -141,12 +158,12 @@ function DashboardPage() {
           </Card>
 
           <Card className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Discomfort</CardTitle>
-              <Zap className="h-4 w-4 text-accent" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-sm sm:text-base font-bold font-sans">Avg Discomfort</CardTitle>
+              <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-accent" />
             </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${getScoreColor(averageScores.discomfort)}`}>
+            <CardContent className="pt-1">
+              <div className={`text-xl sm:text-2xl font-bold ${getScoreColor(averageScores.discomfort)}`}>
                 {averageScores.discomfort.toFixed(1)}
               </div>
               <p className="text-xs text-text-muted">
@@ -156,12 +173,12 @@ function DashboardPage() {
           </Card>
 
           <Card className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Heartburn</CardTitle>
-              <Heart className="h-4 w-4 text-clay-600" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-sm sm:text-base font-bold font-sans">Avg Heartburn</CardTitle>
+              <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-clay-600" />
             </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${getScoreColor(averageScores.heartburn)}`}>
+            <CardContent className="pt-1">
+              <div className={`text-xl sm:text-2xl font-bold ${getScoreColor(averageScores.heartburn)}`}>
                 {averageScores.heartburn.toFixed(1)}
               </div>
               <p className="text-xs text-text-muted">
@@ -171,12 +188,12 @@ function DashboardPage() {
           </Card>
 
           <Card className="animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Treatment Rate</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-sm sm:text-base font-bold font-sans">Treatment Rate</CardTitle>
+              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+            <CardContent className="pt-1">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 {treatmentConsistency.overall}%
               </div>
               <p className="text-xs text-text-muted">
@@ -210,24 +227,26 @@ function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <Card className="animate-slide-up">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center justify-center gap-2 font-sans text-center">
                 <TrendingUp className="h-5 w-5 text-primary-600" />
                 Weekly Symptom Trends
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-center">
                 Track your discomfort, heartburn, and sleep patterns
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="-mx-6 sm:mx-0">
               {chartData && chartData.length > 0 ? (
-                <LineChart 
-                  data={chartData}
-                  lines={[
-                    { dataKey: 'discomfort', name: 'Discomfort', color: '#df6552' },
-                    { dataKey: 'heartburn', name: 'Heartburn', color: '#f59e0b' },
-                    { dataKey: 'sleep', name: 'Sleep Disruption', color: '#8b5cf6' }
-                  ]}
-                />
+                <div className="w-full">
+                  <LineChart 
+                    data={chartData}
+                    lines={[
+                      { dataKey: 'discomfort', name: 'Discomfort', color: '#df6552' },
+                      { dataKey: 'heartburn', name: 'Heartburn', color: '#f59e0b' },
+                      { dataKey: 'sleep', name: 'Sleep Disruption', color: '#8b5cf6' }
+                    ]}
+                  />
+                </div>
               ) : (
                 <div className="h-64 flex items-center justify-center text-text-muted">
                   <div className="text-center">
@@ -242,24 +261,26 @@ function DashboardPage() {
 
           <Card className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-clay-600" />
-                Common Triggers
+              <CardTitle className="flex items-center justify-center gap-2 font-sans text-center">
+                <Flame className="h-5 w-5 text-clay-600" />
+                Food Triggers
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-center">
                 Foods that most often triggered your symptoms this week
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="-mx-6 sm:mx-0">
               {triggerChartData && triggerChartData.length > 0 ? (
-                <BarChart 
-                  data={triggerChartData} 
-                  color="#df6552"
-                />
+                <div className="w-full">
+                  <BarChart 
+                    data={triggerChartData} 
+                    color="#df6552"
+                  />
+                </div>
               ) : (
                 <div className="h-64 flex items-center justify-center text-text-muted">
                   <div className="text-center">
-                    <Heart className="h-12 w-12 mx-auto mb-4 text-text-muted" />
+                    <Flame className="h-12 w-12 mx-auto mb-4 text-text-muted" />
                     <p>No trigger data yet</p>
                     <p className="text-sm">Track your meals to identify patterns</p>
                   </div>
@@ -272,7 +293,7 @@ function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="animate-slide-up">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center justify-center gap-2 font-sans text-center">
                 <Clock className="h-5 w-5 text-primary-600" />
                 This Week's Summary
               </CardTitle>
@@ -305,7 +326,7 @@ function DashboardPage() {
 
           <Card className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center justify-center gap-2 font-sans text-center">
                 <Moon className="h-5 w-5 text-primary-600" />
                 Sleep Quality
               </CardTitle>
@@ -338,7 +359,7 @@ function DashboardPage() {
 
           <Card className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center justify-center gap-2 font-sans text-center">
                 <CheckCircle className="h-5 w-5 text-green-600" />
                 Treatment Insights
               </CardTitle>
@@ -376,6 +397,7 @@ function DashboardPage() {
           </Card>
         </div>
       </div>
+      <BottomNavigation />
     </div>
   )
 }

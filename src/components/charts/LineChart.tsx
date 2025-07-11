@@ -1,5 +1,5 @@
 import React from 'react'
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 interface LineChartProps {
   data: Array<{
@@ -14,6 +14,7 @@ interface LineChartProps {
   height?: number
   showGrid?: boolean
   showTooltip?: boolean
+  showLegend?: boolean
 }
 
 export function LineChart({ 
@@ -21,7 +22,8 @@ export function LineChart({
   lines, 
   height = 300, 
   showGrid = true, 
-  showTooltip = true 
+  showTooltip = true,
+  showLegend = true 
 }: LineChartProps) {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -51,10 +53,26 @@ export function LineChart({
     return null
   }
 
+  const CustomLegend = ({ payload }: any) => {
+    return (
+      <div className="flex flex-wrap justify-center gap-4 mt-4">
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center text-sm">
+            <div 
+              className="w-3 h-3 rounded-full mr-2" 
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-text-secondary font-sans">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
-        <RechartsLineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <RechartsLineChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: showLegend ? 35 : 5 }}>
           {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />}
           <XAxis 
             dataKey="date" 
@@ -68,7 +86,8 @@ export function LineChart({
             axisLine={{ stroke: '#e2e8f0' }}
           />
           {showTooltip && <Tooltip content={<CustomTooltip />} />}
-          {lines.map((line, index) => (
+          {showLegend && <Legend content={<CustomLegend />} />}
+          {lines.map((line) => (
             <Line
               key={line.dataKey}
               type="monotone"
