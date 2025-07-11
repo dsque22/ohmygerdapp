@@ -8,15 +8,13 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 function SignupPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: '',
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -49,8 +47,8 @@ function SignupPage() {
 
     try {
       const { error } = await signUp(formData.email, formData.password, {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
+        first_name: '',
+        last_name: '',
         age: 0,
         gender: '',
         gerd_duration: '',
@@ -72,8 +70,7 @@ function SignupPage() {
     }
   }
 
-  const isFormValid = formData.email && formData.password && formData.confirmPassword && 
-                     formData.firstName && formData.lastName
+  const isFormValid = formData.email && formData.password && formData.confirmPassword
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
@@ -92,34 +89,13 @@ function SignupPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Create Account</CardTitle>
+            <CardTitle className="text-center font-sans font-bold">Create Account</CardTitle>
             <CardDescription>
               Sign up to begin tracking your GERD symptoms
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  type="text"
-                  label="First Name"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  leftIcon={<User className="w-4 h-4 text-text-muted" />}
-                  placeholder="John"
-                  required
-                />
-                <Input
-                  type="text"
-                  label="Last Name"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  leftIcon={<User className="w-4 h-4 text-text-muted" />}
-                  placeholder="Doe"
-                  required
-                />
-              </div>
-              
               <Input
                 type="email"
                 label="Email"
@@ -185,7 +161,8 @@ function SignupPage() {
               
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full font-sans text-white"
+                style={{ backgroundColor: '#df6552' }}
                 loading={loading}
                 disabled={!isFormValid}
               >
@@ -198,7 +175,7 @@ function SignupPage() {
                 Already have an account?{' '}
                 <Link
                   href="/login"
-                  className="text-accent hover:text-accent-dark transition-colors font-medium"
+                  className="text-accent hover:text-accent-dark transition-colors font-bold"
                 >
                   Sign in
                 </Link>
@@ -206,6 +183,12 @@ function SignupPage() {
             </div>
           </CardContent>
         </Card>
+        
+        <div className="text-center mt-8">
+          <p className="text-sm text-text-muted">
+            © 2025 by LiaoHerbal LLC
+          </p>
+        </div>
       </div>
     </div>
   )

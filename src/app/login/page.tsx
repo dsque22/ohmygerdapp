@@ -73,7 +73,7 @@ function LoginPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
+            <CardTitle className="text-center font-sans font-bold">Sign In</CardTitle>
             <CardDescription>
               Enter your credentials to access your account
             </CardDescription>
@@ -121,7 +121,8 @@ function LoginPage() {
               
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full font-sans text-white"
+                style={{ backgroundColor: '#df6552' }}
                 loading={loading}
                 disabled={!email || !password}
               >
@@ -140,7 +141,7 @@ function LoginPage() {
                 Don't have an account?{' '}
                 <Link
                   href="/signup"
-                  className="text-accent hover:text-accent-dark transition-colors font-medium"
+                  className="text-accent hover:text-accent-dark transition-colors font-bold"
                 >
                   Sign up
                 </Link>
@@ -148,6 +149,12 @@ function LoginPage() {
             </div>
           </CardContent>
         </Card>
+        
+        <div className="text-center mt-8">
+          <p className="text-sm text-text-muted">
+            © 2025 by LiaoHerbal LLC
+          </p>
+        </div>
       </div>
     </div>
   )
