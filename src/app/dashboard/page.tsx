@@ -16,7 +16,6 @@ import {
   TrendingUp, 
   Calendar, 
   Heart, 
-  Moon, 
   Zap, 
   CheckCircle,
   Clock,
@@ -30,7 +29,6 @@ import { formatDate, TRIGGER_FOOD_LABELS } from '@/lib/utils'
 function DashboardPage() {
   const { isAuthenticated, loading: authLoading, profile } = useAuth()
   const { 
-    entries, 
     loading, 
     hasTrackedToday,
     getWeeklyEntries,
@@ -290,7 +288,7 @@ function DashboardPage() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="animate-slide-up">
             <CardHeader>
               <CardTitle className="flex items-center justify-center gap-2 font-sans text-center">
@@ -304,12 +302,6 @@ function DashboardPage() {
                 <span className="font-semibold">{weeklyEntries.length}/7</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-text-secondary">Average sleep quality</span>
-                <span className={`font-semibold ${getScoreColor(10 - averageScores.sleep)}`}>
-                  {(10 - averageScores.sleep).toFixed(1)}/10
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
                 <span className="text-sm text-text-secondary">Best day</span>
                 <span className="font-semibold">
                   {weeklyEntries && weeklyEntries.length > 0 
@@ -320,39 +312,6 @@ function DashboardPage() {
                     : 'No data'
                   }
                 </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-center gap-2 font-sans text-center">
-                <Moon className="h-5 w-5 text-primary-600" />
-                Sleep Quality
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center">
-                <div className={`text-3xl font-bold ${getScoreColor(10 - averageScores.sleep)}`}>
-                  {(10 - averageScores.sleep).toFixed(1)}
-                </div>
-                <p className="text-sm text-text-muted">
-                  Average sleep quality this week
-                </p>
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Excellent (9-10)</span>
-                    <span>{(weeklyEntries || []).filter(e => e.sleep_disruption <= 1).length} days</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Good (7-8)</span>
-                    <span>{(weeklyEntries || []).filter(e => e.sleep_disruption > 1 && e.sleep_disruption <= 3).length} days</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Poor (1-6)</span>
-                    <span>{(weeklyEntries || []).filter(e => e.sleep_disruption > 3).length} days</span>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
