@@ -165,7 +165,7 @@ function SignupPage() {
                 <Checkbox
                   id="accept-policies"
                   checked={acceptedPolicies}
-                  onCheckedChange={(checked) => setAcceptedPolicies(!!checked)}
+                  onChange={(checked) => setAcceptedPolicies(!!checked)}
                   className="mt-1"
                 />
                 <label htmlFor="accept-policies" className="text-sm text-text-secondary leading-relaxed">
