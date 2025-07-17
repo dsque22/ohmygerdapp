@@ -1,93 +1,138 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from './useAuth'
+import { Database } from '@/lib/database.types'
 
-// Demo tracking hook that works without Supabase for development/testing
+type DailyEntry = Database['public']['Tables']['daily_entries']['Row']
+
 export function useTracking() {
-  const [entries, setEntries] = useState<any[]>([])
-  const [todayEntry, setTodayEntry] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
+  const { user } = useAuth()
+  const [entries, setEntries] = useState<DailyEntry[]>([])
+  const [todayEntry, setTodayEntry] = useState<DailyEntry | null>(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Mock data
-  useEffect(() => {
-    // Generate some mock entries for the past week
-    const mockEntries = []
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      mockEntries.push({
-        id: `entry-${i}`,
-        user_id: 'demo-user-123',
-        entry_date: date.toISOString().split('T')[0],
-        discomfort_level: Math.floor(Math.random() * 5) + 3, // 3-7
-        heartburn_intensity: Math.floor(Math.random() * 4) + 2, // 2-5
-        sleep_disruption: Math.floor(Math.random() * 3) + 1, // 1-3
-        symptoms: ['heartburn', Math.random() > 0.5 ? 'regurgitation' : 'bloating'],
-        morning_dose: Math.random() > 0.3,
-        evening_dose: Math.random() > 0.2,
-        trigger_foods: Math.random() > 0.5 ? ['spicy_foods'] : ['coffee'],
-        notes: i === 0 ? 'Feeling better today' : '',
-        created_at: date.toISOString(),
-        updated_at: date.toISOString(),
-      })
-    }
-    setEntries(mockEntries)
-    
-    // Set today's entry if it exists (last entry)
-    const today = new Date().toISOString().split('T')[0]
-    const todaysEntry = mockEntries.find(entry => entry.entry_date === today)
-    setTodayEntry(todaysEntry || null)
-  }, [])
+  const fetchEntries = useCallback(async () => {
+    if (!user) return
 
-  const createEntry = async (entryData: any) => {
-    const newEntry = {
-      id: `entry-${Date.now()}`,
-      user_id: 'demo-user-123',
-      ...entryData,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { data, error } = await supabase
+        .from('daily_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('entry_date', { ascending: false })
+        .limit(365) // Fetch last year of entries
+
+      if (error) throw new Error(error.message)
+      
+      setEntries(data || [])
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
+
+  const fetchTodayEntry = useCallback(async () => {
+    if (!user) return
+
+    const today = new Date().toISOString().split('T')[0]
+    const { data, error } = await supabase
+      .from('daily_entries')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('entry_date', today)
+      .single()
+
+    if (error && error.code !== 'PGRST116') { // Ignore 'exact one row' error
+      console.error("Error fetching today's entry:", error)
     }
     
-    setEntries(prev => [...prev, newEntry])
-    setTodayEntry(newEntry)
-    return { data: newEntry, error: null }
+    setTodayEntry(data || null)
+  }, [user])
+
+  useEffect(() => {
+    if (user) {
+      fetchEntries()
+      fetchTodayEntry()
+    } else {
+      setLoading(false)
+    }
+  }, [user, fetchEntries, fetchTodayEntry])
+
+  const createEntry = async (entryData: Omit<DailyEntry, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+    if (!user) throw new Error('User not authenticated')
+
+    const { data, error } = await supabase
+      .from('daily_entries')
+      .insert({ ...entryData, user_id: user.id })
+      .select()
+      .single()
+
+    if (error) return { data: null, error }
+    
+    await fetchEntries() // Refresh all entries
+    await fetchTodayEntry() // Refresh today's entry
+    return { data, error: null }
   }
 
-  const updateEntry = async (entryId: string, updates: any) => {
-    setEntries(prev => prev.map(entry => 
-      entry.id === entryId ? { ...entry, ...updates, updated_at: new Date().toISOString() } : entry
-    ))
-    if (todayEntry?.id === entryId) {
-      setTodayEntry((prev: any) => ({ ...prev, ...updates }))
-    }
-    return { data: null, error: null }
+  const updateEntry = async (entryId: string, updates: Partial<DailyEntry>) => {
+    const { data, error } = await supabase
+      .from('daily_entries')
+      .update(updates)
+      .eq('id', entryId)
+      .select()
+      .single()
+    
+    if (error) return { data: null, error }
+
+    await fetchEntries()
+    await fetchTodayEntry()
+    return { data, error: null }
   }
 
   const deleteEntry = async (entryId: string) => {
-    setEntries(prev => prev.filter(entry => entry.id !== entryId))
-    if (todayEntry?.id === entryId) {
-      setTodayEntry(null)
-    }
+    const { error } = await supabase
+      .from('daily_entries')
+      .delete()
+      .eq('id', entryId)
+    
+    if (error) return { error }
+
+    await fetchEntries()
+    await fetchTodayEntry()
     return { error: null }
   }
 
-  const fetchEntries = async () => {
-    // Already loaded in useEffect
-  }
-
-  const fetchTodayEntry = async () => {
-    // Already loaded in useEffect
+  const getEntriesByDateRange = (startDate: Date, endDate: Date) => {
+    return entries.filter(entry => {
+      const entryDate = new Date(entry.entry_date)
+      return entryDate >= startDate && entryDate <= endDate
+    })
   }
 
   const getWeeklyEntries = (weeksBack = 0) => {
-    return entries.slice(-7) // Last 7 entries
+    const endDate = new Date()
+    endDate.setDate(endDate.getDate() - (weeksBack * 7))
+    const startDate = new Date(endDate)
+    startDate.setDate(startDate.getDate() - 6)
+    
+    return getEntriesByDateRange(startDate, endDate)
   }
 
   const getMonthlyEntries = (monthsBack = 0) => {
-    return entries // All entries for demo
+    const endDate = new Date()
+    endDate.setMonth(endDate.getMonth() - monthsBack)
+    const startDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1)
+
+    return getEntriesByDateRange(startDate, endDate)
   }
 
   const getAverageScores = (timeframe: 'week' | 'month' = 'week') => {
-    const relevantEntries = getWeeklyEntries()
+    const relevantEntries = timeframe === 'week' ? getWeeklyEntries() : getMonthlyEntries()
     
     if (relevantEntries.length === 0) {
       return { discomfort: 0, heartburn: 0, sleep: 0, count: 0 }
@@ -95,9 +140,9 @@ export function useTracking() {
 
     const totals = relevantEntries.reduce(
       (acc, entry) => ({
-        discomfort: acc.discomfort + entry.discomfort_level,
-        heartburn: acc.heartburn + entry.heartburn_intensity,
-        sleep: acc.sleep + entry.sleep_disruption,
+        discomfort: acc.discomfort + (entry.discomfort_level || 0),
+        heartburn: acc.heartburn + (entry.heartburn_intensity || 0),
+        sleep: acc.sleep + (entry.sleep_disruption || 0),
       }),
       { discomfort: 0, heartburn: 0, sleep: 0 }
     )
@@ -112,11 +157,49 @@ export function useTracking() {
   }
 
   const getStreak = () => {
-    return entries.length // Simple demo streak
+    if (entries.length === 0) return 0
+
+    const sortedEntries = [...entries].sort((a, b) => new Date(b.entry_date).getTime() - new Date(a.entry_date).getTime())
+    
+    let streak = 0
+    let expectedDate = new Date()
+    
+    // Check if today's entry exists
+    const todayStr = expectedDate.toISOString().split('T')[0]
+    const hasTodayEntry = sortedEntries.some(e => e.entry_date === todayStr)
+    
+    if (hasTodayEntry) {
+      streak++
+      expectedDate.setDate(expectedDate.getDate() - 1)
+    } else {
+      // If no entry for today, check if the last entry was yesterday
+      const lastEntryDate = new Date(sortedEntries[0].entry_date)
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      
+      if (lastEntryDate.toISOString().split('T')[0] !== yesterday.toISOString().split('T')[0]) {
+        return 0 // Streak is broken if last entry wasn't yesterday or today
+      }
+      expectedDate = lastEntryDate
+    }
+
+    for (let i = streak > 0 ? 1 : 0; i < sortedEntries.length; i++) {
+      const entryDate = new Date(sortedEntries[i].entry_date)
+      const expectedDateStr = expectedDate.toISOString().split('T')[0]
+      
+      if (entryDate.toISOString().split('T')[0] === expectedDateStr) {
+        streak++
+        expectedDate.setDate(expectedDate.getDate() - 1)
+      } else {
+        break // Gap in dates, streak ends
+      }
+    }
+    
+    return streak
   }
 
   const getTreatmentConsistency = (timeframe: 'week' | 'month' = 'week') => {
-    const relevantEntries = getWeeklyEntries()
+    const relevantEntries = timeframe === 'week' ? getWeeklyEntries() : getMonthlyEntries()
     
     if (relevantEntries.length === 0) {
       return { morning: 0, evening: 0, overall: 0 }
@@ -139,20 +222,36 @@ export function useTracking() {
   }
 
   const getMostCommonTriggers = (timeframe: 'week' | 'month' = 'week') => {
-    const relevantEntries = getWeeklyEntries()
+    const relevantEntries = timeframe === 'week' ? getWeeklyEntries() : getMonthlyEntries()
     
     const triggerCounts: Record<string, number> = {}
     
     relevantEntries.forEach(entry => {
-      entry.trigger_foods.forEach((trigger: string) => {
-        triggerCounts[trigger] = (triggerCounts[trigger] || 0) + 1
-      })
+      if (entry.trigger_foods) {
+        entry.trigger_foods.forEach((trigger: string) => {
+          triggerCounts[trigger] = (triggerCounts[trigger] || 0) + 1
+        })
+      }
     })
 
     return Object.entries(triggerCounts)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .map(([trigger, count]) => ({ trigger, count }))
+  }
+
+  const exportAllEntries = async () => {
+    if (!user) throw new Error('User not authenticated')
+
+    const { data, error } = await supabase
+      .from('daily_entries')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('entry_date', { ascending: true })
+
+    if (error) throw new Error(error.message)
+    
+    return data
   }
 
   return {
@@ -171,6 +270,7 @@ export function useTracking() {
     getStreak,
     getTreatmentConsistency,
     getMostCommonTriggers,
+    exportAllEntries,
     hasTrackedToday: !!todayEntry,
     clearError: () => setError(null)
   }

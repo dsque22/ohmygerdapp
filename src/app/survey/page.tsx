@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
@@ -43,11 +43,46 @@ function SurveyPage() {
     liaoCustomerStatus: '',
     knownTriggers: [],
   })
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  const { updateProfile } = useAuth()
+  const { user, updateProfile, loading: authLoading } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    if (!authLoading) { // Only run this check once authLoading is false
+      if (!user) {
+        router.push('/login');
+      } else {
+        // Pre-fill survey data if available from user metadata (e.g., from Google OAuth)
+        const { user_metadata } = user;
+        if (user_metadata) {
+          const newSurveyData: Partial<SurveyData> = {};
+          if (user_metadata.full_name) {
+            const [firstName, ...lastNameParts] = user_metadata.full_name.split(' ');
+            newSurveyData.firstName = firstName || '';
+            newSurveyData.lastName = lastNameParts.join(' ') || '';
+          }
+          if (user_metadata.email) {
+            // Optionally pre-fill email if needed, though not part of surveyData state
+          }
+          // You might also check for other fields if Google provides them
+
+          setSurveyData(prev => ({ ...prev, ...newSurveyData }));
+        }
+      }
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse-gentle">
+          <div className="text-4xl font-bold text-primary-800">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   const updateSurveyData = (field: keyof SurveyData, value: any) => {
     setSurveyData(prev => ({ ...prev, [field]: value }))
@@ -75,11 +110,17 @@ function SurveyPage() {
   }
 
   const handleComplete = async () => {
-    setLoading(true)
+    setIsSubmitting(true)
     setError('')
 
     try {
-      const { error } = await updateProfile({
+      if (!user) {
+        setError('No user logged in. Please try logging in again.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const { error } = await updateProfile(user.id, {
         first_name: surveyData.firstName,
         last_name: surveyData.lastName,
         age: surveyData.age,
@@ -91,15 +132,15 @@ function SurveyPage() {
       })
 
       if (error) {
-        setError('Failed to save survey data')
+        setError(error.message || 'Failed to save survey data')
         return
       }
 
-      router.push('/tracking')
+      router.push('/dashboard')
     } catch (err) {
       setError('An unexpected error occurred')
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -249,8 +290,8 @@ function SurveyPage() {
             </label>
             <div className="space-y-2">
               {[
-                { value: 'yes', label: 'Yes' },
-                { value: 'no', label: 'No' },
+                { value: 'current_customer', label: 'Yes' },
+                { value: 'not_interested', label: 'No' },
               ].map(option => (
                 <div key={option.value} className="flex items-center space-x-2">
                   <input
@@ -400,8 +441,9 @@ function SurveyPage() {
               {currentStep === STEPS.length ? (
                 <Button
                   onClick={handleComplete}
-                  loading={loading}
+                  loading={isSubmitting}
                   className="ml-auto"
+                  disabled={!user || authLoading || isSubmitting} // Disable if no user, auth is loading, or submitting
                 >
                   Complete Setup
                 </Button>

@@ -17,19 +17,18 @@ function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { signIn, isAuthenticated, loading: authLoading } = useAuth()
+  const { signIn, signInWithGoogle, isAuthenticated, loading: authLoading, isProfileComplete } = useAuth()
   const router = useRouter()
 
-  // Only show loading during auth check
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse-gentle">
-          <div className="text-2xl font-bold text-primary-800">Loading...</div>
-        </div>
-      </div>
-    )
-  }
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      if (isProfileComplete) {
+        router.push('/dashboard')
+      } else {
+        router.push('/survey')
+      }
+    }
+  }, [isAuthenticated, authLoading, isProfileComplete, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -129,6 +128,27 @@ function LoginPage() {
                 Sign In
               </Button>
             </form>
+            
+            <div className="relative mt-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-text-muted">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <Button
+              onClick={signInWithGoogle}
+              className="w-full font-sans mt-6"
+              variant="outline"
+              loading={loading} // Use the same loading state for now
+            >
+              <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" alt="Google" className="w-5 h-5 mr-2" />
+              Sign In with Google
+            </Button>
             
             <div className="mt-6 text-center space-y-2">
               <Link

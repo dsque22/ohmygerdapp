@@ -1,100 +1,197 @@
 import { useState, useEffect } from 'react'
+import { User, Session } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
+import { Database } from '@/lib/database.types'
 
-// Demo auth hook that works without Supabase for development/testing
+type UserProfile = Database['public']['Tables']['users']['Row']
+
 export function useAuth() {
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
-  const [session, setSession] = useState<any>(null)
-  const [loading, setLoading] = useState(true) // Start with true, then set to false after init
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  // Initialize without user for proper login flow
   useEffect(() => {
-    // Check for existing session in localStorage (for persistence)
-    const savedSession = localStorage.getItem('demo-session')
-    if (savedSession) {
+    const getInitialSession = async () => {
       try {
-        const sessionData = JSON.parse(savedSession)
-        // Update the profile to ensure admin access
-        const updatedProfile = {
-          ...sessionData.profile,
-          is_admin: true // Force admin access for demo
+        const { data: { session } } = await supabase.auth.getSession()
+        setSession(session)
+        setUser(session?.user ?? null)
+        
+        if (session?.user) {
+          await fetchUserProfile(session.user.id)
+        } else {
         }
-        setUser(sessionData.user)
-        setProfile(updatedProfile)
-        setSession(sessionData.session)
-      } catch (error) {
-        // If there's an error parsing, clear the session
-        localStorage.removeItem('demo-session')
+      } finally {
+        setLoading(false)
       }
     }
-    setLoading(false)
+
+    getInitialSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        try {
+          setSession(session)
+          setUser(session?.user ?? null)
+          
+          if (session?.user) {
+            await fetchUserProfile(session.user.id)
+          } else {
+            setProfile(null)
+          }
+        } finally {
+          setLoading(false)
+        }
+      }
+    )
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
-  const signUp = async (email: string, password: string, userData: any) => {
-    // Mock signup
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    return { data: { user: { id: 'new-user', email } }, error: null }
+  const fetchUserProfile = async (userId: string) => {
+    console.log('fetchUserProfile: Attempting to fetch profile for userId:', userId);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('useAuth: Supabase error in fetchUserProfile:', error); // Log the full Supabase error object
+        if (error.code !== 'PGRST116') {
+          // This is an unexpected error, not just "no row found"
+          console.error('useAuth: Unexpected Supabase error code:', error.code);
+          console.error('useAuth: Unexpected Supabase error message:', error.message);
+        }
+        setProfile(null);
+        return;
+      }
+
+      console.log('useAuth: User profile fetched successfully:', data);
+      setProfile(data);
+    } catch (err: any) {
+      console.error('useAuth: Catch block - Unexpected JavaScript error in fetchUserProfile:', err); // Log the full JS error object
+      console.error('useAuth: Catch block - Error message:', err.message);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUp = async (email: string, password: string, userData: {
+    first_name: string
+    last_name: string
+    age: number
+    gender: string
+    gerd_duration: string
+    worst_symptoms: string[]
+    liao_customer_status: string
+    known_triggers: string[]
+  }) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData,
+          emailRedirectTo: `${window.location.origin}/survey`
+        }
+      })
+
+      if (error) throw error
+
+      return { data, error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
   }
 
   const signIn = async (email: string, password: string) => {
-    // Mock signin
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Simulate successful login by setting user state
-    const demoUser = {
-      id: 'demo-user-123',
-      email: email,
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (error) throw error
+
+      return { data, error: null }
+    } catch (error) {
+      return { data: null, error }
     }
-    
-    const demoProfile = {
-      id: 'demo-user-123',
-      email: email,
-      first_name: 'John',
-      last_name: 'Doe',
-      age: 35,
-      gender: 'male',
-      gerd_duration: '1_to_5_years',
-      worst_symptoms: ['heartburn', 'regurgitation'],
-      liao_customer_status: 'current_customer',
-      known_triggers: ['spicy_foods', 'coffee'],
-      is_admin: true,
+  }
+
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          // No redirectTo here, will be handled by the client-side logic
+        }
+      })
+
+      if (error) throw error
+
+      return { data, error: null }
+    } catch (error) {
+      return { data: null, error }
     }
-    
-    setUser(demoUser)
-    setProfile(demoProfile)
-    setSession({ user: demoUser })
-    
-    // Save session to localStorage for persistence (with admin access)
-    const profileWithAdmin = { ...demoProfile, is_admin: true }
-    localStorage.setItem('demo-session', JSON.stringify({
-      user: demoUser,
-      profile: profileWithAdmin,
-      session: { user: demoUser }
-    }))
-    
-    // Update the profile state with admin access
-    setProfile(profileWithAdmin)
-    
-    return { data: { user: demoUser }, error: null }
   }
 
   const signOut = async () => {
-    setUser(null)
-    setProfile(null)
-    setSession(null)
-    localStorage.removeItem('demo-session')
-    return { error: null }
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      return { error: null }
+    } catch (error) {
+      return { error }
+    }
   }
 
   const resetPassword = async (email: string) => {
-    return { error: null }
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
+      })
+      if (error) throw error
+      return { error: null }
+    } catch (error) {
+      return { error }
+    }
   }
 
-  const updateProfile = async (updates: any) => {
-    setProfile((prev: any) => ({ ...prev, ...updates }))
-    return { error: null }
+  const updateProfile = async (userId: string, updates: Partial<UserProfile>) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', userId)
+
+      if (error) throw error
+
+      await fetchUserProfile(userId)
+      return { error: null }
+    } catch (error) {
+      return { error }
+    }
   }
 
+  const deleteAccount = async () => {
+    try {
+      const { error } = await supabase.rpc('delete_user_account')
+      if (error) throw error
+      return { error: null }
+    } catch (error) {
+      return { error }
+    }
+  }
+
+  const isProfileComplete = profile?.gerd_duration !== null;
+  
   return {
     user,
     profile,
@@ -102,10 +199,14 @@ export function useAuth() {
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     resetPassword,
     updateProfile,
+    deleteAccount,
     isAuthenticated: !!user,
-    isAdmin: profile?.is_admin || false
+    isAdmin: profile?.is_admin || false,
+    isProfileComplete
   }
 }
+

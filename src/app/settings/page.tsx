@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
+import { useTracking } from '@/hooks/useTracking'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -29,7 +30,8 @@ function SettingsPage() {
     age: 0,
   })
 
-  const { isAuthenticated, loading: authLoading, profile, updateProfile, signOut } = useAuth()
+  const { isAuthenticated, loading: authLoading, profile, updateProfile, signOut, deleteAccount } = useAuth()
+  const { exportAllEntries } = useTracking()
   const router = useRouter()
 
   useEffect(() => {
@@ -61,25 +63,26 @@ function SettingsPage() {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!profile) return
+
     setLoading(true)
     setError('')
     setSuccess('')
 
     try {
-      const { error } = await updateProfile({
+      const { error: updateError } = await updateProfile(profile.id, {
         first_name: profileData.firstName,
         last_name: profileData.lastName,
         age: profileData.age,
       })
 
-      if (error) {
-        setError('Failed to update profile')
-        return
+      if (updateError) {
+        throw updateError
       }
 
       setSuccess('Profile updated successfully!')
-    } catch (err) {
-      setError('An unexpected error occurred')
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred')
     } finally {
       setLoading(false)
     }
@@ -91,15 +94,40 @@ function SettingsPage() {
   }
 
   const handleDeleteAccount = async () => {
-    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      // Implement account deletion logic here
-      alert('Account deletion would be implemented here')
+    if (window.confirm('Are you sure you want to delete your account? This action is permanent and cannot be undone.')) {
+      setLoading(true)
+      setError('')
+      try {
+        const { error: deleteError } = await deleteAccount()
+        if (deleteError) throw deleteError
+        await signOut()
+        router.push('/') // Redirect to home after deletion
+      } catch (err: any) {
+        setError(err.message || 'Failed to delete account.')
+        setLoading(false)
+      }
     }
   }
 
-  const handleExportData = () => {
-    // Implement data export logic here
-    alert('Data export would be implemented here')
+  const handleExportData = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const data = await exportAllEntries()
+      if (data) {
+        const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
+          JSON.stringify(data, null, 2)
+        )}`
+        const link = document.createElement('a')
+        link.href = jsonString
+        link.download = 'liao-tracking-data.json'
+        link.click()
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to export data.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

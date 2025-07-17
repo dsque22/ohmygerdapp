@@ -27,7 +27,7 @@ import {
 import { formatDate, TRIGGER_FOOD_LABELS } from '@/lib/utils'
 
 function DashboardPage() {
-  const { isAuthenticated, loading: authLoading, profile } = useAuth()
+  const { isAuthenticated, loading: authLoading, profile, isProfileComplete } = useAuth()
   const { 
     loading, 
     hasTrackedToday,
@@ -40,8 +40,13 @@ function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
+    console.log(isProfileComplete)
     if (!authLoading && !isAuthenticated) {
       router.push('/login')
+    }else{
+      if (!isProfileComplete) {
+        router.push('/survey')
+      }
     }
   }, [isAuthenticated, authLoading, router])
 

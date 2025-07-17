@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
@@ -23,8 +23,19 @@ function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { signUp } = useAuth()
+  const { signUp, signInWithGoogle, isAuthenticated, loading: authLoading, isProfileComplete } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      
+      if (isProfileComplete) {
+        router.push('/dashboard')
+      } else {
+        router.push('/survey')
+      }
+    }
+  }, [isAuthenticated, authLoading, isProfileComplete, router])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -49,13 +60,13 @@ function SignupPage() {
 
     try {
       const { error } = await signUp(formData.email, formData.password, {
-        first_name: '',
-        last_name: '',
-        age: 0,
-        gender: '',
-        gerd_duration: '',
+        first_name: 'New',
+        last_name: 'User',
+        age: 18,
+        gender: 'prefer_not_to_say',
+        gerd_duration: 'less_than_1_year',
         worst_symptoms: [],
-        liao_customer_status: '',
+        liao_customer_status: 'not_interested',
         known_triggers: []
       })
       
@@ -64,7 +75,7 @@ function SignupPage() {
         return
       }
 
-      router.push('/survey')
+      router.push('/auth/check-email')
     } catch (err) {
       setError('An unexpected error occurred')
     } finally {
@@ -200,6 +211,27 @@ function SignupPage() {
                 Create Account
               </Button>
             </form>
+            
+            <div className="relative mt-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-text-muted">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <Button
+              onClick={signInWithGoogle}
+              className="w-full font-sans mt-6"
+              variant="outline"
+              loading={loading} // Use the same loading state for now
+            >
+              <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" alt="Google" className="w-5 h-5 mr-2" />
+              Sign Up with Google
+            </Button>
             
             <div className="mt-6 text-center">
               <p className="text-sm text-text-secondary">
